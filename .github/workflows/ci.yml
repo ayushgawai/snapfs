@@ -1,0 +1,16 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
+      - name: Test
+        run: ctest --test-dir build --output-on-failure
+      - name: ThreadSanitizer concurrency
+        run: |
+          cmake -S . -B build-tsan -DSNAPFS_TSAN=ON -DCMAKE_BUILD_TYPE=Debug
+          cmake --build build-tsan -j --target test_concurrency_tsan
+          ./build-tsan/test_concurrency_tsan
